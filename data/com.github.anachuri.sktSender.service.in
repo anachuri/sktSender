@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=com.github.anachuri.sktSender
+Exec=@bindir@/sktsender --gapplication-service

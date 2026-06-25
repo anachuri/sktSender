@@ -1,0 +1,8 @@
+# List of source files containing translatable strings.
+# Please keep this file sorted alphabetically.
+data/com.github.anachuri.sktSender.desktop.in
+data/com.github.anachuri.sktSender.metainfo.xml.in
+data/com.github.anachuri.sktSender.gschema.xml
+src/main.c
+src/sktsender-window.c
+src/sktsender-window.ui
