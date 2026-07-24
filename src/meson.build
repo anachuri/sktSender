@@ -15,5 +15,6 @@ sktsender_sources += gnome.compile_resources('sktsender-resources',
 
 executable('sktsender', sktsender_sources,
   dependencies: sktsender_deps,
+  export_dynamic:true,
        install: true,
 )

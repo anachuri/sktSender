@@ -29,3 +29,5 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (SktsenderWindow, sktsender_window, SKTSENDER, WINDOW, GtkApplicationWindow)
 
 G_END_DECLS
+
+// char *get_file_name (GtkListItem *item, GFileInfo *info);
