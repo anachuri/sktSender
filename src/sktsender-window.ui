@@ -26,7 +26,11 @@
             <child>
               <object class="GtkStackPage">
                 <property name="child">
-                  <object class="GtkGridView" id="grid"/>
+                  <object class="GtkScrolledWindow">
+                    <child>
+                      <object class="GtkGridView" id="grid"/>
+                    </child>
+                  </object>
                 </property>
                 <property name="icon-name">computer</property>
               </object>

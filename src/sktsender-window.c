@@ -31,8 +31,20 @@ struct _SktsenderWindow
 
 G_DEFINE_FINAL_TYPE (SktsenderWindow, sktsender_window, GTK_TYPE_APPLICATION_WINDOW)
 
-char *get_file_name (GtkListItem *item, GFileInfo *info) {
+char *
+get_file_name (GtkListItem *item, GFileInfo *info)
+{
   return G_IS_FILE_INFO (info) ? g_strdup (g_file_info_get_name (info)) : NULL;
+}
+
+GIcon *
+get_icon (GtkListItem *item, GFileInfo *info)
+{
+  GIcon *icon;
+
+  /* g_file_info_get_icon can return NULL */
+  icon = G_IS_FILE_INFO (info) ? g_file_info_get_icon (info) : NULL;
+  return icon ? g_object_ref (icon) : NULL;
 }
 
 static void
@@ -41,18 +53,21 @@ sktsender_window_class_init (SktsenderWindowClass *klass)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/com/github/anachuri/sktSender/sktsender-window.ui");
-  // gtk_widget_class_bind_template_child (widget_class, SktsenderWindow, label);
   gtk_widget_class_bind_template_child (widget_class, SktsenderWindow, grid);
   gtk_widget_class_bind_template_callback (widget_class, get_file_name);
+  gtk_widget_class_bind_template_callback (widget_class, get_icon);
 }
 
-GIcon *
-get_icon (GtkListItem *item, GFileInfo *info) {
-  GIcon *icon;
+void
+fun (
+  GtkGestureClick* self,
+  gint n_press,
+  gdouble x,
+  gdouble y,
+  gpointer user_data
+){
 
-   /* g_file_info_get_icon can return NULL */
-  icon = G_IS_FILE_INFO (info) ? g_file_info_get_icon (info) : NULL;
-  return icon ? g_object_ref (icon) : NULL;
+  printf("hi\n");
 }
 
 static void
@@ -61,32 +76,49 @@ sktsender_window_init (SktsenderWindow *self)
   gtk_widget_init_template (GTK_WIDGET (self));
   GFile *file = g_file_new_for_path ("/home/imaxii");
   GtkDirectoryList *dl = gtk_directory_list_new ("standard::name", file);
-  guint n_items = g_list_model_get_n_items(G_LIST_MODEL(dl));
-
-  printf("%u\n", n_items);
+  guint n_items = g_list_model_get_n_items (G_LIST_MODEL (dl));
   g_object_unref (file);
 
   GtkSingleSelection *model = gtk_single_selection_new (G_LIST_MODEL (dl));
- const char *ui_string =
-"<interface>"
-  "<template class=\"GtkListItem\">"
-    "<property name=\"child\">"
-      "<object class=\"GtkLabel\">"
-        "<binding name=\"label\">"
-          "<closure type=\"gchararray\" function=\"get_file_name\">"
-            "<lookup name=\"item\">GtkListItem</lookup>"
-          "</closure>"
-        "</binding>"
-      "</object>"
-    "</property>"
-  "</template>"
-"</interface>";
+  const char *ui_string =
+      "<interface>"
+      "  <template class=\"GtkListItem\">"
+      "    <property name=\"child\">"
+      "      <object class=\"GtkBox\">"
+      "        <property name=\"orientation\">GTK_ORIENTATION_VERTICAL</property>"
+      "        <property name=\"spacing\">20</property>"
+      "        <child>"
+      "          <object class=\"GtkImage\">"
+      "            <property name=\"icon-size\">GTK_ICON_SIZE_LARGE</property>"
+      "            <binding name=\"gicon\">"
+      "              <closure type=\"GIcon\" function=\"get_icon\">"
+      "                <lookup name=\"item\">GtkListItem</lookup>"
+      "              </closure>"
+      "            </binding>"
+      "          </object>"
+      "        </child>"
+      "        <child>"
+      "          <object class=\"GtkLabel\">"
+      "            <property name=\"hexpand\">TRUE</property>"
+      "            <property name=\"xalign\">0.5</property>"
+      "            <binding name=\"label\">"
+      "              <closure type=\"gchararray\" function=\"get_file_name\">"
+      "                <lookup name=\"item\">GtkListItem</lookup>"
+      "              </closure>"
+      "            </binding>"
+      "          </object>"
+      "        </child>"
+      "      </object>"
+      "    </property>"
+      "  </template>"
+      "</interface>";
 
-  GBytes *gbytes = g_bytes_new_static(ui_string,strlen(ui_string));
-  GtkListItemFactory *factory = gtk_builder_list_item_factory_new_from_bytes (NULL,gbytes);
+  GBytes *gbytes = g_bytes_new_static (ui_string, strlen (ui_string));
+  GtkListItemFactory *factory = gtk_builder_list_item_factory_new_from_bytes (NULL, gbytes);
   gtk_grid_view_set_factory (self->grid, factory);
- gtk_grid_view_set_model (self->grid, GTK_SELECTION_MODEL (model));
+  gtk_grid_view_set_model (self->grid, GTK_SELECTION_MODEL (model));
   g_object_ref (self->grid);
-}
 
+  g_signal_connect (GTK_GRID_VIEW (self->grid), "pressed", G_CALLBACK (fun), NULL);
+}
 

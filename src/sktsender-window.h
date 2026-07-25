@@ -30,4 +30,5 @@ G_DECLARE_FINAL_TYPE (SktsenderWindow, sktsender_window, SKTSENDER, WINDOW, GtkA
 
 G_END_DECLS
 
-// char *get_file_name (GtkListItem *item, GFileInfo *info);
+char *get_file_name (GtkListItem *item, GFileInfo *info);
+GIcon *get_icon (GtkListItem *item, GFileInfo *info);
