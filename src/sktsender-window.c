@@ -32,19 +32,37 @@ struct _SktsenderWindow
 G_DEFINE_FINAL_TYPE (SktsenderWindow, sktsender_window, GTK_TYPE_APPLICATION_WINDOW)
 
 char *
-get_file_name (GtkListItem *item, GFileInfo *info)
-{
+get_file_name (GtkListItem *item, GFileInfo *info){
   return G_IS_FILE_INFO (info) ? g_strdup (g_file_info_get_name (info)) : NULL;
 }
 
 GIcon *
-get_icon (GtkListItem *item, GFileInfo *info)
-{
+get_icon (GtkListItem *item, GFileInfo *info){
   GIcon *icon;
-
   /* g_file_info_get_icon can return NULL */
   icon = G_IS_FILE_INFO (info) ? g_file_info_get_icon (info) : NULL;
   return icon ? g_object_ref (icon) : NULL;
+}
+
+/* static void
+setup_cb (GtkSignalListItemFactory *self, GtkListItem *listitem, gpointer user_data) {
+  GtkWidget *lb = gtk_label_new (NULL);
+  gtk_list_item_set_child (listitem, lb);
+  /* Because gtk_list_item_set_child sunk the floating reference of lb, releasing (unref) isn't necessary for lb.
+} */
+
+/*static void bind_cb (GtkListItemFactory *self, GtkListItem *listitem, gpointer user_data) {
+  GtkWidget *widget = gtk_list_item_get_child (listitem);
+  GtkGesture *gesture = gtk_gesture_click_new ();
+  gtk_widget_add_controller (widget,GTK_EVENT_CONTROLLER(gesture));
+  printf("hi\n");
+}*/
+
+static void
+grid_activate (GtkGridView *grid, int position, gpointer user_data) {
+  GFileInfo *info = G_FILE_INFO (g_list_model_get_item (G_LIST_MODEL (gtk_grid_view_get_model (grid)), position));
+ // launch_tfe_with_file (info);
+ printf("hi\n");
 }
 
 static void
@@ -58,20 +76,18 @@ sktsender_window_class_init (SktsenderWindowClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, get_icon);
 }
 
-void
-fun (
-  GtkGestureClick* self,
-  gint n_press,
-  gdouble x,
-  gdouble y,
-  gpointer user_data
-){
+void items_changed (
+  GListModel* self,
+  guint position,
+  guint removed,
+  guint added,
+  gpointer user_data){
 
-  printf("hi\n");
-}
+    printf("hola\n");
+  }
 
-static void
-sktsender_window_init (SktsenderWindow *self)
+
+static void sktsender_window_init (SktsenderWindow *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
   GFile *file = g_file_new_for_path ("/home/imaxii");
@@ -119,6 +135,9 @@ sktsender_window_init (SktsenderWindow *self)
   gtk_grid_view_set_model (self->grid, GTK_SELECTION_MODEL (model));
   g_object_ref (self->grid);
 
-  g_signal_connect (GTK_GRID_VIEW (self->grid), "pressed", G_CALLBACK (fun), NULL);
+ // g_signal_connect (factory, "bind", G_CALLBACK (bind_cb), NULL);
+    g_signal_connect (GTK_GRID_VIEW (self->grid), "activate", G_CALLBACK (grid_activate), NULL);
+  g_signal_connect (G_LIST_MODEL(gtk_grid_view_get_model(self->grid)), "items-changed", G_CALLBACK (items_changed), NULL);
+
 }
 
