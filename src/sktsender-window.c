@@ -62,8 +62,7 @@ sktsender_window_class_init (SktsenderWindowClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/com/github/anachuri/sktSender/sktsender-window.ui");
   gtk_widget_class_bind_template_child (widget_class, SktsenderWindow, grid);
-  gtk_widget_class_bind_template_callback (widget_class, get_file_name);
-  gtk_widget_class_bind_template_callback (widget_class, get_icon);
+
 }
 
 static void sktsender_window_init (SktsenderWindow *self)
