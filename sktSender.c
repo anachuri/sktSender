@@ -1,14 +1,3 @@
-#include "config.h"
-#include "sktsender-window.h"
-
-struct _SktsenderWindow
-{
-  GtkApplicationWindow parent_instance;
-  /* Template widgets */
-  GtkGridView *grid;
-};
-
-G_DEFINE_FINAL_TYPE (SktsenderWindow, sktsender_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static void pressed_cb (GtkGestureClick *gesture,
          int              n_press,
@@ -19,9 +8,7 @@ static void pressed_cb (GtkGestureClick *gesture,
     printf("%s\n", g_file_get_path (file));
 }
 
-static void
-setup_listitem_cb (GtkListItemFactory *factory,
-                   GtkListItem        *list_item){
+static void setup_listitem_cb (GtkListItemFactory *factory,GtkListItem *list_item){
   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL,20);
   GtkWidget *image;
   GtkWidget *label = gtk_label_new(NULL);
@@ -33,8 +20,7 @@ setup_listitem_cb (GtkListItemFactory *factory,
 }
 
 static void
-bind_listitem_cb (GtkListItemFactory *factory, GtkListItem *list_item)
-{
+bind_listitem_cb (GtkListItemFactory *factory, GtkListItem *list_item){
   GtkWidget *box = gtk_list_item_get_child (list_item);
   GFileInfo *file_info = gtk_list_item_get_item (list_item);
   GtkImage *image = GTK_IMAGE (gtk_widget_get_first_child(box));
@@ -48,26 +34,13 @@ bind_listitem_cb (GtkListItemFactory *factory, GtkListItem *list_item)
   g_signal_connect (gesture, "pressed", G_CALLBACK (pressed_cb), file_info);
 }
 
-static void
-grid_activate (GtkGridView *grid, int position, gpointer user_data) {
+static void grid_activate (GtkGridView *grid, int position, gpointer user_data) {
   GFileInfo *info = G_FILE_INFO (g_list_model_get_item (G_LIST_MODEL (gtk_grid_view_get_model (grid)), position));
  // launch_tfe_with_file (info);
  printf("hi\n");
 }
 
-static void
-sktsender_window_class_init (SktsenderWindowClass *klass)
-{
-  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
-
-  gtk_widget_class_set_template_from_resource (widget_class, "/com/github/anachuri/sktSender/sktsender-window.ui");
-  gtk_widget_class_bind_template_child (widget_class, SktsenderWindow, grid);
-  gtk_widget_class_bind_template_callback (widget_class, get_file_name);
-  gtk_widget_class_bind_template_callback (widget_class, get_icon);
-}
-
-static void sktsender_window_init (SktsenderWindow *self)
-{
+static void sktsender_window_init (SktsenderWindow *self){
   gtk_widget_init_template (GTK_WIDGET (self));
   GFile *file = g_file_new_for_path ("/home/imaxii");
   GtkDirectoryList *dl = gtk_directory_list_new ("standard::*", file);
