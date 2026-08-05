@@ -6,7 +6,9 @@ static void pressed_cb (GtkGestureClick *gesture,
          double           y,
          GFileInfo       *file_info){
     GFile *file = G_FILE (g_file_info_get_attribute_object (file_info,"standard::file"));
-    printf("%s\n", g_file_get_path (file));
+    if(g_file_info_get_file_type (file_info) == G_FILE_TYPE_DIRECTORY)
+      return;
+      
 }
 
 static void setup_listitem_cb (GtkListItemFactory *factory,GtkListItem *list_item){
@@ -20,8 +22,7 @@ static void setup_listitem_cb (GtkListItemFactory *factory,GtkListItem *list_ite
   gtk_list_item_set_child (list_item, box);
 }
 
-static void
-bind_listitem_cb (GtkListItemFactory *factory, GtkListItem *list_item){
+static void bind_listitem_cb (GtkListItemFactory *factory, GtkListItem *list_item){
   GtkWidget *box = gtk_list_item_get_child (list_item);
   GFileInfo *file_info = gtk_list_item_get_item (list_item);
   GtkImage *image = GTK_IMAGE (gtk_widget_get_first_child(box));
@@ -37,8 +38,7 @@ bind_listitem_cb (GtkListItemFactory *factory, GtkListItem *list_item){
 
 static void grid_activate (GtkGridView *grid, int position, gpointer user_data) {
   GFileInfo *info = G_FILE_INFO (g_list_model_get_item (G_LIST_MODEL (gtk_grid_view_get_model (grid)), position));
- // launch_tfe_with_file (info);
- printf("hi\n");
+  
 }
 
 static void app_activate (GApplication *app, gpointer *user_data) {
