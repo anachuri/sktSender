@@ -1,14 +1,23 @@
 #include <gtk/gtk.h>
 
-static void pressed_cb (GtkGestureClick *gesture,
-         int              n_press,
-         double           x,
-         double           y,
-         GFileInfo       *file_info){
-    GFile *file = G_FILE (g_file_info_get_attribute_object (file_info,"standard::file"));
-    if(g_file_info_get_file_type (file_info) == G_FILE_TYPE_DIRECTORY)
+//GtkWidget *popover_menu;
+
+static void pressed_cb (GtkGestureClick *gesture,int n_press,double x, double y,GtkListItem *list_item){  
+  GtkWidget *box = gtk_list_item_get_child (list_item);
+  GFileInfo *file_info = gtk_list_item_get_item (list_item);
+  GFile *file = G_FILE (g_file_info_get_attribute_object (file_info,"standard::file"));
+  if(g_file_info_get_file_type (file_info) == G_FILE_TYPE_DIRECTORY)
       return;
-      
+      GMenu *menu = g_menu_new();
+  GMenuItem *menu_item_item1 = g_menu_item_new("Transfer", "spot.item1");
+  g_menu_append_item(menu, menu_item_item1);
+  g_object_unref(menu_item_item1);
+  // popover menu
+  GtkWidget *popover_menu = gtk_popover_menu_new_from_model_full (G_MENU_MODEL(menu),GTK_POPOVER_MENU_NESTED);
+  gtk_widget_set_parent(popover_menu,GTK_WIDGET(box));
+  
+  gtk_popover_set_pointing_to(GTK_POPOVER(popover_menu), &(const GdkRectangle){x,y,1,1});
+  gtk_popover_popup(GTK_POPOVER (popover_menu));
 }
 
 static void setup_listitem_cb (GtkListItemFactory *factory,GtkListItem *list_item){
@@ -29,18 +38,18 @@ static void bind_listitem_cb (GtkListItemFactory *factory, GtkListItem *list_ite
   GtkLabel *label = GTK_LABEL (gtk_widget_get_last_child(box));
   gtk_image_set_from_gicon (GTK_IMAGE (image),g_file_info_get_icon(file_info));
 
-  gtk_label_set_text (GTK_LABEL (label), g_file_info_get_name(file_info));
+  gtk_label_set_label (GTK_LABEL (label), g_file_info_get_name(file_info));
   GtkGesture *gesture = gtk_gesture_click_new ();
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), GDK_BUTTON_SECONDARY);
   gtk_widget_add_controller (box, GTK_EVENT_CONTROLLER (gesture));
-  g_signal_connect (gesture, "pressed", G_CALLBACK (pressed_cb), file_info);
+  g_signal_connect (gesture, "pressed", G_CALLBACK (pressed_cb), list_item);
 }
 
 static void grid_activate (GtkGridView *grid, int position, gpointer user_data) {
-  GFileInfo *info = G_FILE_INFO (g_list_model_get_item (G_LIST_MODEL (gtk_grid_view_get_model (grid)), position));
-  
+  GFileInfo *file_info = G_FILE_INFO (g_list_model_get_item (G_LIST_MODEL (gtk_grid_view_get_model (grid)), position));
+  if(g_file_info_get_file_type (file_info) != G_FILE_TYPE_DIRECTORY)
+      return;
 }
-
 static void app_activate (GApplication *app, gpointer *user_data) {
   GtkBuilder *builder = gtk_builder_new_from_file ("sktSender.ui");
   GtkWidget *win = GTK_WIDGET (gtk_builder_get_object (builder, "win"));
@@ -59,6 +68,7 @@ static void app_activate (GApplication *app, gpointer *user_data) {
   gtk_grid_view_set_model (grid, GTK_SELECTION_MODEL (model));
   g_object_ref (grid);
   g_signal_connect (GTK_GRID_VIEW (grid), "activate", G_CALLBACK (grid_activate), NULL);
+  
   gtk_window_present (GTK_WINDOW (win));
 }
 
@@ -66,7 +76,6 @@ int main (int argc, char **argv) {
   GtkApplication *app;
   int stat;
   app = gtk_application_new ("com.github.anachuri.sktSender", G_APPLICATION_DEFAULT_FLAGS);
-
   g_signal_connect (app, "activate", G_CALLBACK (app_activate), NULL);
   stat = g_application_run (G_APPLICATION (app), argc, argv);
   g_object_unref (app);
