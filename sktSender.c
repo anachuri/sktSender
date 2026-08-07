@@ -8,7 +8,8 @@ static void pressed_cb (GtkGestureClick *gesture,int n_press,double x, double y,
   GFile *file = G_FILE (g_file_info_get_attribute_object (file_info,"standard::file"));
   if(g_file_info_get_file_type (file_info) == G_FILE_TYPE_DIRECTORY)
       return;
-      GMenu *menu = g_menu_new();
+  printf("%s\n",g_file_info_get_name(file_info));
+  GMenu *menu = g_menu_new();
   GMenuItem *menu_item_item1 = g_menu_item_new("Transfer", "spot.item1");
   g_menu_append_item(menu, menu_item_item1);
   g_object_unref(menu_item_item1);
@@ -59,7 +60,8 @@ static void app_activate (GApplication *app, gpointer *user_data) {
   GFile *file = g_file_new_for_path ("/home/imaxii");
   GtkDirectoryList *dl = gtk_directory_list_new ("standard::*", file);
   g_object_unref (file);
-  GtkSingleSelection *model = gtk_single_selection_new (G_LIST_MODEL (dl));
+  //GtkSingleSelection *model = gtk_single_selection_new (G_LIST_MODEL (dl));
+  GtkNoSelection *model = gtk_no_selection_new (G_LIST_MODEL(dl));
   GtkListItemFactory *factory = gtk_signal_list_item_factory_new ();
   g_signal_connect (factory, "setup", G_CALLBACK (setup_listitem_cb), NULL);
   g_signal_connect (factory, "bind", G_CALLBACK (bind_listitem_cb), NULL);
