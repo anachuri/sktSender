@@ -33,6 +33,7 @@
                   </object>
                 </property>
                 <property name="icon-name">computer</property>
+                <property name="name">1</property>
               </object>
             </child>
             <child>
@@ -43,6 +44,7 @@
                   </object>
                 </property>
                 <property name="icon-name">folder-open</property>
+                <property name="name">2</property>
               </object>
             </child>
             <child>
@@ -53,6 +55,7 @@
                   </object>
                 </property>
                 <property name="icon-name">network-receive-symbolic</property>
+                <property name="name">3</property>
               </object>
             </child>
           </object>

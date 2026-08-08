@@ -1,6 +1,12 @@
 #include <gtk/gtk.h>
 
 //GtkWidget *popover_menu;
+GtkApplication *app;
+GtkStack *stack;
+
+static void transfer_activated(GSimpleAction* self,GVariant* parameter,gpointer user_data){
+  gtk_stack_set_visible_child_name (stack,"2");
+}
 
 static void pressed_cb (GtkGestureClick *gesture,int n_press,double x, double y,GtkListItem *list_item){  
   GtkWidget *box = gtk_list_item_get_child (list_item);
@@ -9,15 +15,24 @@ static void pressed_cb (GtkGestureClick *gesture,int n_press,double x, double y,
   if(g_file_info_get_file_type (file_info) == G_FILE_TYPE_DIRECTORY)
       return;
   printf("%s\n",g_file_info_get_name(file_info));
+  
+  GSimpleAction *act_transfer = g_simple_action_new ("transfer", NULL);
+  g_signal_connect (act_transfer, "activate", G_CALLBACK (transfer_activated),G_APPLICATION(app));
+  g_action_map_add_action (G_ACTION_MAP (app), G_ACTION (act_transfer));
+  g_object_unref (act_transfer);
+  
   GMenu *menu = g_menu_new();
-  GMenuItem *menu_item_item1 = g_menu_item_new("Transfer", "spot.item1");
+  GMenuItem *menu_item_item1 = g_menu_item_new("transfer", "app.transfer");
   g_menu_append_item(menu, menu_item_item1);
   g_object_unref(menu_item_item1);
   // popover menu
   GtkWidget *popover_menu = gtk_popover_menu_new_from_model_full (G_MENU_MODEL(menu),GTK_POPOVER_MENU_NESTED);
+  
   gtk_widget_set_parent(popover_menu,GTK_WIDGET(box));
   
   gtk_popover_set_pointing_to(GTK_POPOVER(popover_menu), &(const GdkRectangle){x,y,1,1});
+//  gtk_popover_set_autohide(GTK_POPOVER(popover_menu),false);
+  gtk_popover_present(GTK_POPOVER (popover_menu));
   gtk_popover_popup(GTK_POPOVER (popover_menu));
 }
 
@@ -51,6 +66,10 @@ static void grid_activate (GtkGridView *grid, int position, gpointer user_data) 
   if(g_file_info_get_file_type (file_info) != G_FILE_TYPE_DIRECTORY)
       return;
 }
+
+static void activate_focus (GtkWindow* self,  gpointer user_data){
+  printf("sexo\n");
+}
 static void app_activate (GApplication *app, gpointer *user_data) {
   GtkBuilder *builder = gtk_builder_new_from_file ("sktSender.ui");
   GtkWidget *win = GTK_WIDGET (gtk_builder_get_object (builder, "win"));
@@ -66,16 +85,19 @@ static void app_activate (GApplication *app, gpointer *user_data) {
   g_signal_connect (factory, "setup", G_CALLBACK (setup_listitem_cb), NULL);
   g_signal_connect (factory, "bind", G_CALLBACK (bind_listitem_cb), NULL);
   GtkGridView *grid = GTK_GRID_VIEW(gtk_builder_get_object (builder, "grid"));
+  
+  stack = GTK_STACK(gtk_builder_get_object (builder, "stack"));
+  
   gtk_grid_view_set_factory (grid, factory);
   gtk_grid_view_set_model (grid, GTK_SELECTION_MODEL (model));
   g_object_ref (grid);
   g_signal_connect (GTK_GRID_VIEW (grid), "activate", G_CALLBACK (grid_activate), NULL);
-  
+  g_signal_connect (GTK_WINDOW (win), "activate-focus", G_CALLBACK (activate_focus), NULL);
   gtk_window_present (GTK_WINDOW (win));
 }
 
 int main (int argc, char **argv) {
-  GtkApplication *app;
+  //GtkApplication *app;
   int stat;
   app = gtk_application_new ("com.github.anachuri.sktSender", G_APPLICATION_DEFAULT_FLAGS);
   g_signal_connect (app, "activate", G_CALLBACK (app_activate), NULL);
